@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Happy Birthday</title>
+<style>
+body {
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding-top: 40px;
+  color: #fff;
+}
+
+.cake {
+  position: relative;
+  width: 200px;
+  height: 120px;
+  background: #ff6f91;
+  border-radius: 0 0 20px 20px;
+  margin: auto;
+}
+
+.candle {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 40px;
+  background: white;
+}
+
+.flame {
+  position: absolute;
+  top: -18px;
+  left: -5px;
+  width: 20px;
+  height: 20px;
+  background: orange;
+  border-radius: 50% 50% 50% 50%;
+  animation: flicker 0.2s infinite alternate;
+}
+
+@keyframes flicker {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.2); }
+}
+
+.hidden { display: none; }
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  color: #ff6f91;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#message {
+  font-size: 22px;
+  margin-top: 20px;
+}
+
+.quiz {
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎉 Selamat Ulang Tahun 🎉</h1>
+<p>Tiup lilinnya atau klik lilinnya 😊</p>
+
+<div class="cake">
+  <div class="candle" id="candle">
+    <div class="flame" id="flame"></div>
+  </div>
+</div>
+
+<div id="message"></div>
+
+<div id="quiz" class="quiz hidden"></div>
+
+<button id="resetBtn" class="hidden">Nyalakan lagi lilin 🔥</button>
+
+<script>
+const flame = document.getElementById("flame");
+const message = document.getElementById("message");
+const quiz = document.getElementById("quiz");
+const resetBtn = document.getElementById("resetBtn");
+
+// Kata romantis random
+const romanticMessages = [
+  "Terima kasih sudah hadir dan bikin hidup terasa lebih hangat.",
+  "Semoga semua yang kamu harapkan pelan-pelan terwujud.",
+  "Tetap jadi kamu yang sederhana tapi bikin nyaman.",
+  "Semoga hari-harimu ke depan lebih ringan dan menyenangkan.",
+  "Aku doakan yang terbaik buat kamu."
+];
+
+// Game questions
+const questions = [
+  {
+    q: "Apa yang bikin hari kamu lebih enak?",
+    options: ["Tidur cukup", "Kopi enak", "Aku ngucapin ulang tahun"],
+    response: "Aku harap ini beneran bikin kamu senyum 😊"
+  },
+  {
+    q: "Hari ini kamu bahagia?",
+    options: ["Ya 😊", "Belum"],
+    response: "Semoga setelah ini sedikit lebih baik 🤍"
+  },
+  {
+    q: "Pilih kado virtualmu 🎁",
+    options: ["Pelukan jarak jauh", "Liburan impian", "Ulang tahun kedua 😂"],
+    response: "Semoga suatu hari bisa jadi nyata."
+  }
+];
+
+let currentQuestion = 0;
+
+// Klik lilin
+document.getElementById("candle").onclick = blowOut;
+
+// Deteksi suara (tiup)
+navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+  const audioContext = new AudioContext();
+  const analyser = audioContext.createAnalyser();
+  const mic = audioContext.createMediaStreamSource(stream);
+  mic.connect(analyser);
+
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  function checkBlow() {
+    analyser.getByteFrequencyData(dataArray);
+    const volume = dataArray.reduce((a,b)=>a+b)/dataArray.length;
+    if (volume > 50) blowOut();
+    requestAnimationFrame(checkBlow);
+  }
+  checkBlow();
+});
+
+function blowOut() {
+  if (!flame.classList.contains("hidden")) {
+    flame.classList.add("hidden");
+    const randomMsg = romanticMessages[Math.floor(Math.random()*romanticMessages.length)];
+    message.innerText = "🎂 Selamat ulang tahun! \n" + randomMsg;
+    showQuestion();
+    resetBtn.classList.remove("hidden");
+  }
+}
+
+function showQuestion() {
+  quiz.classList.remove("hidden");
+  const q = questions[currentQuestion];
+  quiz.innerHTML = `<h3>${q.q}</h3>`;
+  q.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.innerText = opt;
+    btn.onclick = () => {
+      alert(q.response);
+      currentQuestion++;
+      if (currentQuestion < questions.length) showQuestion();
+      else quiz.innerHTML = "<h3>Terima kasih sudah main 🤍</h3>";
+    };
+    quiz.appendChild(btn);
+    quiz.appendChild(document.createElement("br"));
+  });
+}
+
+// Reset
+resetBtn.onclick = () => {
+  flame.classList.remove("hidden");
+  message.innerText = "";
+  quiz.classList.add("hidden");
+  currentQuestion = 0;
+  resetBtn.classList.add("hidden");
+};
+</script>
+
+</body>
+</html>
